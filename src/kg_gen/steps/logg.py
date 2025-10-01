@@ -5,7 +5,7 @@ def _abbreviate_text(text: str, max_len: int = 100) -> str:
     """Shorten long text for logging, keeping start and end."""
     if len(text) <= max_len:
         return text
-    half = 30
+    half = 50
     return (
         text[:half]
         + " ... ABBRIDGED-FOR-LOG ... "
