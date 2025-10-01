@@ -7,6 +7,7 @@ def log_dspy_messages(history_entry: dict, save_dir: str = "logs"):
 
     timestamp = datetime.datetime.now().isoformat()
     print(type(history_entry))
+    print(list(history_entry.keys()))
     with open(log_path, "a", encoding="utf-8") as f:
         f.write(f"\n--- DSPy call @ {timestamp} ---\n")
         f.write(f"SYSTEM:\n{history_entry['system']}\n\n")
