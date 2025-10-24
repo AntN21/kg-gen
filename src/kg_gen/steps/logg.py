@@ -1,11 +1,11 @@
 import os
 
 
-def _abbreviate_text(text: str, max_len: int = 100) -> str:
+def _abbreviate_text(text: str, max_len: int = 300) -> str:
     """Shorten long text for logging, keeping start and end."""
     if len(text) <= max_len:
         return text
-    half = 50
+    half = max_len // 2
     return (
         text[:half]
         + " ... ABBRIDGED-FOR-LOG ... "
