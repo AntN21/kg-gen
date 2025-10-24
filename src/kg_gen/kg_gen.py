@@ -227,7 +227,7 @@ class KGGen:
                     return chunk_entities, chunk_relations
 
             # Process chunks in parallel using ThreadPoolExecutor
-            with ThreadPoolExecutor() as executor:
+            with ThreadPoolExecutor(max_workers=10) as executor:
                 results = list(
                     tqdm(
                         executor.map(process_chunk, chunks, [self.lm] * len(chunks)),
