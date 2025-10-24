@@ -174,28 +174,31 @@ class KGGen:
             Graph: Generated knowledge graph
         """
 
-        # Process input data
-        is_conversation = isinstance(input_data, list)
-        if is_conversation:
-            # Extract text from messages
-            text_content = []
-            for message in input_data:
-                if (
-                    not isinstance(message, dict)
-                    or "role" not in message
-                    or "content" not in message
-                ):
-                    raise ValueError(
-                        "Messages must be dicts with 'role' and 'content' keys"
-                    )
-                if message["role"] in ["user", "assistant"]:
-                    text_content.append(f"{message['role']}: {message['content']}")
+        # # Process input data
+        # is_conversation = isinstance(input_data, list)
+        # if is_conversation:
+        #     # Extract text from messages
+        #     text_content = []
+        #     for message in input_data:
+        #         if (
+        #             not isinstance(message, dict)
+        #             or "role" not in message
+        #             or "content" not in message
+        #         ):
+        #             raise ValueError(
+        #                 "Messages must be dicts with 'role' and 'content' keys"
+        #             )
+        #         if message["role"] in ["user", "assistant"]:
+        #             text_content.append(f"{message['role']}: {message['content']}")
 
-            # Join with newlines to preserve message boundaries
-            processed_input = "\n".join(text_content)
-        else:
-            processed_input = input_data
-
+        #     # Join with newlines to preserve message boundaries
+        #     processed_input = "\n".join(text_content)
+        # else:
+        #     processed_input = input_data
+        
+        is_conversation = False
+        processed_input = input_data
+        
         # Reinitialize dspy with new parameters if any are provided
         if any([model, temperature, api_key, api_base]):
             self.init_model(
@@ -205,7 +208,7 @@ class KGGen:
                 api_base=api_base or self.api_base,
             )
 
-        if not chunk_size:
+        if not chunk_size and not isinstance(processed_input, list):
             with dspy.context(lm=self.lm):
                 entities = get_entities(
                     processed_input, is_conversation=is_conversation
@@ -214,7 +217,11 @@ class KGGen:
                     processed_input, entities, is_conversation=is_conversation
                 )
         else:
-            chunks = chunk_text(processed_input, chunk_size)
+            if isinstance(processed_input, list):
+                chunks = processed_input
+            else:
+                chunks = chunk_text(processed_input, chunk_size)
+
             entities = set()
             relations = set()
 
