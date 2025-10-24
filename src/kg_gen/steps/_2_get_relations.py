@@ -13,14 +13,14 @@ def extraction_sig(
             1. Action1 and action2 are verb-object phrases.
             2. Action1 is related to action2 by a temporal relation.
             3. Time is a temporal relation between action1 and action2 (e.g. before, after, during, while, then, next, later, etc.)
-      Actions must be from entities list. Actions provided were previously extracted from the same source text.
+      Actions must be from actions list. Actions provided were previously extracted from the same source text.
       This is for an extraction task, please be thorough, accurate, and faithful to the reference text. {context}"""
     #         __doc__ = f"""Extract subject-predicate-object triples from the source text. 
     #   Subject and object must be from entities list. Entities provided were previously extracted from the same source text.
     #   This is for an extraction task, please be thorough, accurate, and faithful to the reference text. {context}"""
 
             source_text: str = dspy.InputField()
-            entities: list[str] = dspy.InputField()
+            actions: list[str] = dspy.InputField()
             relations: list[Relation] = dspy.OutputField(
                 desc="List of action1-time-action2 tuples. Be thorough."
             )
@@ -56,9 +56,9 @@ def fallback_extraction_sig(
         # TODO: should use literal's here instead.
         __doc__ = f"""Knowledge graph action1-time-action2 tuple. Actions must be one of: {entities_str}"""
 
-        subject: str = dspy.InputField(desc="Action1", examples=["Add flour"])
-        predicate: str = dspy.InputField(desc="Time", examples=["Then"])
-        object: str = dspy.InputField(desc="Action2", examples=["Mix ingredients"])
+        action1: str = dspy.InputField(desc="Action1", examples=["Add flour"])
+        time: str = dspy.InputField(desc="Time Relation", examples=["Then"])
+        action2: str = dspy.InputField(desc="Action2", examples=["Mix ingredients"])
 
     return Relation, extraction_sig(Relation, is_conversation, context)
 
@@ -73,9 +73,9 @@ def get_relations(
     class Relation(BaseModel):
         """Knowledge graph action1-time-action2 tuple."""
 
-        subject: str = dspy.InputField(desc="Action1", examples=["Add flour"])
-        predicate: str = dspy.InputField(desc="Time", examples=["Then"])
-        object: str = dspy.InputField(desc="Action2", examples=["Mix ingredients"])
+        action1: str = dspy.InputField(desc="Action1", examples=["Add flour"])
+        time: str = dspy.InputField(desc="Time Relation", examples=["Then"])
+        action2: str = dspy.InputField(desc="Action2", examples=["Mix ingredients"])
 
     ExtractRelations = extraction_sig(Relation, is_conversation, context)
 
@@ -85,7 +85,8 @@ def get_relations(
         # Grab the most recent history entry
         history_entry = extract.history[-1]
         log_dspy_messages(history_entry, save_dir=save_dir)
-        return [(r.subject, r.predicate, r.object) for r in result.relations]
+        return [(r.action1, r.time, r.action2) for r in result.relations]
+        #return [(r.subject, r.predicate, r.object) for r in result.relations]
 
     except Exception as _:
         Relation, ExtractRelations = fallback_extraction_sig(
@@ -96,23 +97,24 @@ def get_relations(
         # Grab the most recent history entry
         history_entry = extract.history[-1]
         log_dspy_messages(history_entry, save_dir=save_dir)
-        
+
         class FixedRelations(dspy.Signature):
             """Fix the relations so that every actions of the relations are exact matches to an action previously extracted. Keep the predicate the same. The meaning of every relation should stay faithful to the reference text. If you cannot maintain the meaning of the original relation relative to the source text, then do not return it."""
 
             source_text: str = dspy.InputField()
-            entities: list[str] = dspy.InputField()
+            actions: list[str] = dspy.InputField()
             relations: list[Relation] = dspy.InputField()
             fixed_relations: list[Relation] = dspy.OutputField()
 
         fix = dspy.ChainOfThought(FixedRelations)
 
         fix_res = fix(
-            source_text=input_data, entities=entities, relations=result.relations
+            source_text=input_data, actions=entities, relations=result.relations
         )
 
         good_relations = []
         for rel in fix_res.fixed_relations:
             if rel.subject in entities and rel.object in entities:
                 good_relations.append(rel)
-        return [(r.subject, r.predicate, r.object) for r in good_relations]
+        return [(r.action1, r.time, r.action2) for r in good_relations]
+        # return [(r.subject, r.predicate, r.object) for r in good_relations]
