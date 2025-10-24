@@ -14,7 +14,8 @@ def extraction_sig(
             2. Action1 is related to action2 by a temporal relation.
             3. Time is a temporal relation between action1 and action2 (e.g. before, after, during, while, then, next, later, etc.)
       Actions must be from actions list. Actions provided were previously extracted from the same source text.
-      This is for an extraction task, please be thorough, accurate, and faithful to the reference text. {context}"""
+      This is for an extraction task, please be thorough, accurate, and faithful to the reference text. 
+      Respect the structure. Do not forget spaces in the output format. {context}"""
     #         __doc__ = f"""Extract subject-predicate-object triples from the source text. 
     #   Subject and object must be from entities list. Entities provided were previously extracted from the same source text.
     #   This is for an extraction task, please be thorough, accurate, and faithful to the reference text. {context}"""

@@ -15,6 +15,8 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
+##
+from tqdm import tqdm
 # Configure dspy logging to only show errors
 import logging
 
@@ -227,7 +229,11 @@ class KGGen:
             # Process chunks in parallel using ThreadPoolExecutor
             with ThreadPoolExecutor() as executor:
                 results = list(
-                    executor.map(process_chunk, chunks, [self.lm] * len(chunks))
+                    tqdm(
+                        executor.map(process_chunk, chunks, [self.lm] * len(chunks)),
+                        total=len(chunks),
+                        desc="Processing chunks"
+                    )
                 )
 
             # Combine results
