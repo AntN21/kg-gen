@@ -115,7 +115,7 @@ def get_relations(
 
         good_relations = []
         for rel in fix_res.fixed_relations:
-            if rel.subject in entities and rel.object in entities:
+            if rel.action1 in entities and rel.action2 in entities:
                 good_relations.append(rel)
         return [(r.action1, r.time, r.action2) for r in good_relations]
         # return [(r.subject, r.predicate, r.object) for r in good_relations]
