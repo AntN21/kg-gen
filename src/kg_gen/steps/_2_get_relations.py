@@ -92,11 +92,11 @@ def get_relations(
             entities, is_conversation, context
         )
         extract = dspy.Predict(ExtractRelations)
+        result = extract(source_text=input_data, entities=entities)
         # Grab the most recent history entry
         history_entry = extract.history[-1]
         log_dspy_messages(history_entry, save_dir=save_dir)
-        result = extract(source_text=input_data, entities=entities)
-
+        
         class FixedRelations(dspy.Signature):
             """Fix the relations so that every actions of the relations are exact matches to an action previously extracted. Keep the predicate the same. The meaning of every relation should stay faithful to the reference text. If you cannot maintain the meaning of the original relation relative to the source text, then do not return it."""
 
