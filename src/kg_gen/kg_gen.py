@@ -159,6 +159,7 @@ class KGGen:
         cluster: bool = False,
         temperature: float = None,
         output_folder: Optional[str] = None,
+        max_workers: int = 10,
     ) -> Graph:
         """Generate a knowledge graph from input text or messages.
 
@@ -234,7 +235,7 @@ class KGGen:
                     return chunk_entities, chunk_relations
 
             # Process chunks in parallel using ThreadPoolExecutor
-            with ThreadPoolExecutor(max_workers=10) as executor:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 results = list(
                     tqdm(
                         executor.map(process_chunk, chunks, [self.lm] * len(chunks)),
