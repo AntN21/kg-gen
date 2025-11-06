@@ -2,6 +2,7 @@ from typing import List
 import dspy
 from pydantic import BaseModel
 from .logg import log_dspy_messages
+from dspy.utils.exceptions import AdapterParseError
 
 def extraction_sig(
     Relation: BaseModel, is_conversation: bool, context: str = ""
@@ -108,14 +109,18 @@ def get_relations(
             fixed_relations: list[Relation] = dspy.OutputField()
 
         fix = dspy.ChainOfThought(FixedRelations)
+        try:
+            fix_res = fix(
+                source_text=input_data, actions=entities, relations=result.relations
+            )
 
-        fix_res = fix(
-            source_text=input_data, actions=entities, relations=result.relations
-        )
-
-        good_relations = []
-        for rel in fix_res.fixed_relations:
-            if rel.action1 in entities and rel.action2 in entities:
-                good_relations.append(rel)
-        return [(r.action1, r.time, r.action2) for r in good_relations]
+            good_relations = []
+            for rel in fix_res.fixed_relations:
+                if rel.action1 in entities and rel.action2 in entities:
+                    good_relations.append(rel)
+            return [(r.action1, r.time, r.action2) for r in good_relations]
+        
+        except AdapterParseError as e:
+            print(f"AdapterParseError during relation fixing: {e}")
+            return []
         # return [(r.subject, r.predicate, r.object) for r in good_relations]
